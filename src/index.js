@@ -1,5 +1,9 @@
+const container = document.getElementById('container');
+
 // take user input location and return current weather forecast for today
 async function getWeather(location) {
+
+    const weatherImg = new Image();
 
     try {
         // fetch the weather data
@@ -10,8 +14,12 @@ async function getWeather(location) {
         console.log(jsonResponse);
         // get the props that we need
         const currentTempCelsius = jsonResponse.current.temp_c;     // current temp in celsius
-        const locationName = jsonResponse.location.name;         // location name
-        console.log(`The current temperature in ${locationName} is ${currentTempCelsius}\u00B0C`);
+        const locationName = jsonResponse.location.name;            // location name
+        const weatherText = jsonResponse.current.condition.text;
+        const icon = jsonResponse.current.condition.icon            // current weather icon
+        weatherImg.src = icon;
+        container.appendChild(weatherImg);                      // use this when styling UI
+        console.log(`${weatherText} in ${locationName} and the current temperature is ${currentTempCelsius}\u00B0C`);
     } catch(error) {
         console.log(error.message);
     }
