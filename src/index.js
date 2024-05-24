@@ -12,20 +12,41 @@ async function getWeather(location) {
         // wait until data has been fetched, then store JSON in jsonResponse
         const jsonResponse = await response.json();
         console.log(jsonResponse);
-        // get the props that we need
-        const currentTempCelsius = jsonResponse.current.temp_c;     // current temp in celsius
-        const locationName = jsonResponse.location.name;            // location name
-        const weatherText = jsonResponse.current.condition.text;
-        const icon = jsonResponse.current.condition.icon            // current weather icon
-        weatherImg.src = icon;
-        container.appendChild(weatherImg);                      // use this when styling UI
-        console.log(`${weatherText} in ${locationName} and the current temperature is ${currentTempCelsius}\u00B0C`);
+
+        // return object containing only the data we want
+        const processedData = processData(jsonResponse);
+        console.log(processedData);
+
+        // display the weather data nicely
+        displayController(processedData);
     } catch(error) {
         console.log(error.message);
     }
     
     
 
+}
+
+
+// factory function to return the required info from the API json response
+function processData(dataToProcess) {
+    // get the props that we need
+    const currentTempCelsius = dataToProcess.current.temp_c;     // current temp in celsius
+    const locationName = dataToProcess.location.name;            // location name
+    const weatherText = dataToProcess.current.condition.text;
+    const icon = dataToProcess.current.condition.icon            // current weather icon
+
+    return { currentTempCelsius, locationName, weatherText, icon };
+}
+
+
+function displayController(dataToDisplay) {
+    const tempCelsius = dataToDisplay.currentTempCelsius;
+    const locationName = dataToDisplay.locationName;
+    const weatherText = dataToDisplay.weatherText;
+    const weatherIcon = dataToDisplay.icon;
+
+    console.log(`${weatherText} in ${locationName}, with current temperature of ${tempCelsius}\u00B0C.`)
 }
 
 getWeather('London');
