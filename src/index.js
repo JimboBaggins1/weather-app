@@ -1,4 +1,12 @@
+import './style.css';
+
 const container = document.getElementById('container');
+
+// get user entered location
+
+
+// get submit button
+const submitBtn = document.getElementById('submit');
 
 // take user input location and return current weather forecast for today
 async function getWeather(location) {
@@ -49,4 +57,23 @@ function displayController(dataToDisplay) {
     console.log(`${weatherText} in ${locationName}, with current temperature of ${tempCelsius}\u00B0C.`)
 }
 
-getWeather('London');
+// check validity of input before sending to getWeather(). Currently only checks that a value has been entered.
+function checkValid(input) {
+    if (input === null || input === undefined || input.trim() === "") {
+        const errorDiv = document.querySelector('.error');
+        errorDiv.classList.add('error');
+        errorDiv.textContent = 'Uh oh, looks like you haven\'t entered a location';
+        return false;
+    } else {
+        return true;
+    }
+}
+
+
+submitBtn.addEventListener('click', (event) => {
+    event.preventDefault();
+    const inputElem = document.getElementById('weatherLocation');
+    const userInput = inputElem.value;
+    console.log(userInput);
+    if (checkValid(userInput)) getWeather(userInput);
+})
