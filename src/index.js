@@ -1,34 +1,51 @@
 import './style.css';
+import Icon from './images/search.svg';
 
 const container = document.getElementById('container');
-
+const weatherContainer = document.createElement('div');
+weatherContainer.classList.add('weather-grid');
 // get user entered location
 
 
-// get submit button
+// get submit button & input field
 const submitBtn = document.getElementById('submit');
+submitBtn.src = Icon;
+submitBtn.width = '18';
+const input = document.getElementById('weatherLocation');
 
 // take user input location and return current weather forecast for today
 async function getWeather(location) {
-
-    const weatherImg = new Image();
+    const NUMDAYS = 3;
 
     try {
         // fetch the weather data
-        const response = await fetch(`https://api.weatherapi.com/v1/current.json?key=f1cf6b88f513417b90d112852241405&q=${location}`, { mode: 'cors' });
+        const response = await fetch(`https://api.weatherapi.com/v1/forecast.json?key=f1cf6b88f513417b90d112852241405&q=${location}&days=${NUMDAYS}`, { mode: 'cors' });
 
         // wait until data has been fetched, then store JSON in jsonResponse
         const jsonResponse = await response.json();
         console.log(jsonResponse);
+        if (jsonResponse.error) throw new Error(jsonResponse.error.message);
 
         // return object containing only the data we want
-        const processedData = processData(jsonResponse);
-        console.log(processedData);
+        let dayDataArr = [];
+        for (let i = 0; i < NUMDAYS; i++) {
+            dayDataArr.push(processData(jsonResponse, i));
+        }
+        console.log(dayDataArr);
 
         // display the weather data nicely
-        displayController(processedData);
+        //displayController(processedData);
+        dayDataArr.forEach((day, index) => {
+            let display;
+            if (index === 0) {
+                display = displayController.bind(dayDataArr[index], index);
+            } else {
+                display = displayController.bind(dayDataArr[index], index);
+            }
+            display();
+        })
     } catch(error) {
-        console.log(error.message);
+        alert(error);
     }
     
     
@@ -37,43 +54,152 @@ async function getWeather(location) {
 
 
 // factory function to return the required info from the API json response
-function processData(dataToProcess) {
-    // get the props that we need
-    const currentTempCelsius = dataToProcess.current.temp_c;     // current temp in celsius
-    const locationName = dataToProcess.location.name;            // location name
-    const weatherText = dataToProcess.current.condition.text;
-    const icon = dataToProcess.current.condition.icon            // current weather icon
+function processData(dataToProcess, index) {
+    // get the props that we need - basic single day
+    // const currentTempCelsius = dataToProcess.current.temp_c;     // current temp in celsius
+    // const locationName = dataToProcess.location.name;            // location name
+    // const weatherText = dataToProcess.current.condition.text;
+    // const icon = dataToProcess.current.condition.icon            // current weather icon
 
-    return { currentTempCelsius, locationName, weatherText, icon };
+    // return { currentTempCelsius, locationName, weatherText, icon };
+
+    // get forecast object
+    const forecastObj = dataToProcess.forecast.forecastday[index];
+
+    // current temp
+    const currentTemp = dataToProcess.current.temp_c;
+    console.log(`Current temp: ${currentTemp}`);
+
+
+    // 24 hour forecast
+    let tempArr = forecastObj.hour.map(item => item.temp_c);
+    let iconArr = forecastObj.hour.map(item => item.condition.icon);
+    let hourArr = forecastObj.hour.map(item => item.time);
+    // console.log iconArr)
+
+    function getTemp(item) {
+        return item.temp_c;
+    }
+    function getIcon(item) {
+        return item.condition.icon;
+    }
+
+    // 3 day forecast
+    const tempHigh = forecastObj.day.maxtemp_c;
+    const tempLow = forecastObj.day.mintemp_c;
+    const tempAvg = forecastObj.day.avgtemp_c;
+    const text = forecastObj.day.condition.text;
+    const icon = forecastObj.day.condition.icon;
+    const location = dataToProcess.location.name;
+    const date = forecastObj.date;
+    return { tempHigh, tempLow, tempAvg, text, icon, location, date, tempArr, iconArr, hourArr };
 }
 
 
-function displayController(dataToDisplay) {
-    const tempCelsius = dataToDisplay.currentTempCelsius;
-    const locationName = dataToDisplay.locationName;
-    const weatherText = dataToDisplay.weatherText;
-    const weatherIcon = dataToDisplay.icon;
+function displayController(index) {
+    let headerMsg = "";
+    const header = document.createElement('div');
+    const hourlyContainer = document.createElement('div');
 
-    console.log(`${weatherText} in ${locationName}, with current temperature of ${tempCelsius}\u00B0C.`)
+    // displays header text if forecast is today
+    if (index === 0) {
+        headerMsg = `${this.text} in ${this.location}, with highs of ${this.tempHigh}\u00B0C.`;
+        header.textContent = headerMsg;
+        header.setAttribute('id', 'header-msg');
+        weatherContainer.appendChild(header);
+        // 24h forecast
+        this.tempArr.forEach((elem, index) => {
+            const hourDiv = document.createElement('div');
+            const timeSection = document.createElement('div');
+            timeSection.textContent = new Date(this.hourArr[index]).toLocaleTimeString('en-GB', { hour: "2-digit", minute: "2-digit" });
+            const tempSection = document.createElement('div');
+            tempSection.textContent = elem;
+            const iconSection = document.createElement('img');
+            console.log(this.iconArr[index]);
+            iconSection.src = this.iconArr[index];
+            hourDiv.appendChild(timeSection);
+            hourDiv.appendChild(iconSection);
+            hourDiv.appendChild(tempSection);
+            hourlyContainer.setAttribute('id', 'detailed-forecast');
+            hourlyContainer.appendChild(hourDiv);
+        })
+    }
+
+    // Stats for each day
+    const stats = document.createElement('ul');
+    const day = document.createElement('li');
+    const avg = document.createElement('li')
+    const high = document.createElement('li');
+    const low = document.createElement('li');
+
+    day.textContent = getDayName(this.date, 'en-GB');
+    avg.textContent = `Average: ${this.tempAvg}\u00B0C`;
+    high.textContent = `High: ${this.tempHigh}\u00B0C`;
+    low.textContent = `Low: ${this.tempLow}\u00B0C`;
+
+    stats.appendChild(day);
+    stats.appendChild(avg);
+    stats.appendChild(high);
+    stats.appendChild(low);
+    // TODO: Remove
+    console.log(stats);
+
+    // weather icon
+    const imgToDisplay = new Image();
+    imgToDisplay.src = this.icon;
+    imgToDisplay.width = '150';
+    
+    const weatherItem = document.createElement('div');
+    weatherItem.classList.add('grid-item');
+    weatherItem.setAttribute('id', `item-${index}`)
+
+    weatherItem.appendChild(imgToDisplay);
+    weatherItem.appendChild(stats);
+
+    weatherContainer.appendChild(hourlyContainer);
+    weatherContainer.appendChild(weatherItem);
+    container.appendChild(weatherContainer);
 }
 
 // check validity of input before sending to getWeather(). Currently only checks that a value has been entered.
 function checkValid(input) {
+    const errorDiv = document.querySelector('.error');
     if (input === null || input === undefined || input.trim() === "") {
-        const errorDiv = document.querySelector('.error');
-        errorDiv.classList.add('error');
+        errorDiv.classList.add('active');
         errorDiv.textContent = 'Uh oh, looks like you haven\'t entered a location';
         return false;
     } else {
+        errorDiv.classList.remove('active');
+        errorDiv.textContent = '';
         return true;
     }
 }
 
+// helper to convert date to day
+function getDayName(dateStr, locale)
+{
+    var date = new Date(dateStr);
+    return date.toLocaleDateString(locale, { weekday: 'long' });        
+}
 
 submitBtn.addEventListener('click', (event) => {
     event.preventDefault();
     const inputElem = document.getElementById('weatherLocation');
     const userInput = inputElem.value;
     console.log(userInput);
+    // prevent duplicate display when user presses enter multiple times
+    weatherContainer.textContent = "";
     if (checkValid(userInput)) getWeather(userInput);
+})
+
+input.addEventListener('keypress', (event) => {
+    if (event.key === 'Enter') {
+        event.preventDefault
+        const inputElem = document.getElementById('weatherLocation');
+        const userInput = inputElem.value;
+        console.log(userInput);
+        // prevent duplicate display when user presses enter multiple times
+        weatherContainer.textContent = "";
+        if (checkValid(userInput)) getWeather(userInput);
+    }
 })
