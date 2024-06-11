@@ -1,10 +1,18 @@
+@font-face {
+    font-family: dmSans;
+    src: url('./fonts/DM_Sans/DMSans-VariableFont_opsz\,wght.ttf');
+    font-weight: 400;
+  }
+
 * {
     box-sizing: border-box;
 }
 
 body {
-    font-family:  "Fira Sans", sans-serif;
-    font-size: 1em;
+    font-family:  dmSans, sans-serif;
+    font-size: 1.4em;
+    background-image: url(./images/background.jpg);
+    color: rgba(16, 255, 233, 0.87);
 }
 li {
     list-style: none;
@@ -23,6 +31,9 @@ ul {
 
 .searchbar {
     position: relative;
+    display: flex;
+    justify-content: center;
+    padding-top: 5%;
 }
 
 input {
@@ -31,12 +42,13 @@ input {
     border-top: 0;
     border-right: 0;
     border-bottom: 1px solid black;
+    background: transparent;
 }
 
 #submit {
-    position: absolute;
+    /* position: absolute;
     top: 0;
-    right: 0;
+    right: 0; */
     cursor: pointer;
 }
 
@@ -48,12 +60,16 @@ input {
     background-color: red;
     border-radius: 5px;
     padding: 5px;
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, 50%);
 }
 
 .weather-grid {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-evenly;
+    justify-content: center;
+    column-gap: 20px;
     /* display: grid;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: repeat(2, 1fr); */
@@ -69,34 +85,73 @@ input {
 
 #detailed-forecast {
     flex-basis: 100%;
+    position: relative;
     display: flex;
+    justify-content: center;
+    margin: 20px 0;
+    color: rgba(16, 255, 233, 0.87);
+    column-gap: 20px;
 }
 
 #detailed-forecast div {
     text-align: center;
 }
 
+#right-arrow,
+#left-arrow {
+    position: absolute;
+    top: 50%;
+    width: 32px;
+    cursor: pointer;
+}
+
+#right-arrow {
+    right: 33%;
+}
+
+#left-arrow {
+    left: 33%;
+}
+
+#right-arrow.disabled,
+#left-arrow.disabled {
+    cursor: not-allowed;
+}
 .grid-item {
     text-align: center;
-    border: 1px solid grey;
+    border: 1px solid #91bacd;
+    /* background-color: #91bacd; */
     border-radius: 5px;
     box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
     transition: 0.3s;
     padding: 6px 16px;
+    color: rgba(16, 255, 233, 0.87);
 }
 
 .grid-item:hover {
     box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
 }
 
-@media only screen and (max-width: 600px) {
+.hours {
+    display: none;
+}
+
+.visible {
+    display: block;
+}
+
+.disabled {
+    opacity: 0.3;
+}
+
+@media only screen and (max-width: 650px) {
     #header-msg {padding: 50px 10px;}
     .grid-item { width: 60%;}
     .weather-grid { flex-direction: column; row-gap: 20px; align-items: center;}
 }
 
 /* prevent blue autofill background - solution taken from https://stackoverflow.com/questions/55131944/how-to-remove-blue-background-on-chrome-autocomplete */
-input:-webkit-autofill,
+/* input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
 textarea:-webkit-autofill,
@@ -106,4 +161,4 @@ select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
-}
+} */
