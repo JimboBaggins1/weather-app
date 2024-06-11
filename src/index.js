@@ -1,16 +1,20 @@
 import './style.css';
 import Icon from './images/search.svg';
+import lArrow from './images/left-arrow.svg';
+import rArrow from './images/right-arrow.svg';
+
 
 const container = document.getElementById('container');
 const weatherContainer = document.createElement('div');
 weatherContainer.classList.add('weather-grid');
 // get user entered location
-
-
+let slidePos = 0;
+const NUM_SLIDES_DISPLAY = 4;
 // get submit button & input field
 const submitBtn = document.getElementById('submit');
 submitBtn.src = Icon;
 submitBtn.width = '18';
+
 const input = document.getElementById('weatherLocation');
 
 // take user input location and return current weather forecast for today
@@ -103,17 +107,36 @@ function displayController(index) {
 
     // displays header text if forecast is today
     if (index === 0) {
+        const rightArrow = document.createElement('img');
+        const leftArrow = document.createElement('img');
+        rightArrow.src = rArrow;
+        leftArrow.src = lArrow;
+        rightArrow.setAttribute('id', 'right-arrow');
+        leftArrow.setAttribute('id', 'left-arrow');
+
         headerMsg = `${this.text} in ${this.location}, with highs of ${this.tempHigh}\u00B0C.`;
         header.textContent = headerMsg;
         header.setAttribute('id', 'header-msg');
         weatherContainer.appendChild(header);
         // 24h forecast
         this.tempArr.forEach((elem, index) => {
+
             const hourDiv = document.createElement('div');
+            hourDiv.setAttribute('id', index);
+            hourDiv.classList.add('hours');
             const timeSection = document.createElement('div');
-            timeSection.textContent = new Date(this.hourArr[index]).toLocaleTimeString('en-GB', { hour: "2-digit", minute: "2-digit" });
+            const currentTime = new Date().getHours();
+            const forecastHour = new Date(this.hourArr[index]).toLocaleTimeString('en-GB', { hour: "2-digit", minute: "2-digit" });
+            console.log(typeof forecastHour.split(':')[0]);
+            console.log(typeof currentTime);
+            if (currentTime === parseInt(forecastHour.split(':')[0])) {
+                timeSection.textContent = 'Now';
+                hourDiv.classList.add('current');
+            } else {
+                timeSection.textContent = forecastHour;
+            }
             const tempSection = document.createElement('div');
-            tempSection.textContent = elem;
+            tempSection.textContent = `${elem}\u00B0C`;
             const iconSection = document.createElement('img');
             console.log(this.iconArr[index]);
             iconSection.src = this.iconArr[index];
@@ -122,6 +145,8 @@ function displayController(index) {
             hourDiv.appendChild(tempSection);
             hourlyContainer.setAttribute('id', 'detailed-forecast');
             hourlyContainer.appendChild(hourDiv);
+            hourlyContainer.appendChild(leftArrow);
+            hourlyContainer.appendChild(rightArrow);
         })
     }
 
@@ -159,6 +184,13 @@ function displayController(index) {
     weatherContainer.appendChild(hourlyContainer);
     weatherContainer.appendChild(weatherItem);
     container.appendChild(weatherContainer);
+
+    if (index === 0) {
+        const currentSlide = document.querySelector('.current');
+        const currentPos = currentSlide.getAttribute('id');
+        slidePos = parseInt(currentPos);
+        progressSlides();
+    }
 }
 
 // check validity of input before sending to getWeather(). Currently only checks that a value has been entered.
@@ -182,6 +214,33 @@ function getDayName(dateStr, locale)
     return date.toLocaleDateString(locale, { weekday: 'long' });        
 }
 
+function progressSlides(right = false) {
+    const slides = document.querySelectorAll('.hours');
+
+    // Increment or decrement slidePos depending on whether right or left arrow clicked 
+    if (right && slidePos < slides.length - NUM_SLIDES_DISPLAY) {
+      slidePos++;
+    } else if (!right && slidePos > 0) {
+      slidePos--;
+    }
+
+    // DBG
+    console.log(slidePos);
+
+    // controls which slides are visible
+    slides.forEach((slide, index) => {
+        if (index >= slidePos && index < (slidePos + NUM_SLIDES_DISPLAY)) {
+            slide.classList.add('visible');
+        } else if (slide.classList.contains('visible')) {
+            slide.classList.remove('visible');
+        }
+    })
+
+    // prevent slidePos going out of bounds - i.e. 0 <= slide pos <= 23
+    document.getElementById('right-arrow').classList.toggle('disabled', slidePos >= slides.length - NUM_SLIDES_DISPLAY);
+    document.getElementById('left-arrow').classList.toggle('disabled', slidePos <= 0); 
+}
+
 submitBtn.addEventListener('click', (event) => {
     event.preventDefault();
     const inputElem = document.getElementById('weatherLocation');
@@ -201,5 +260,18 @@ input.addEventListener('keypress', (event) => {
         // prevent duplicate display when user presses enter multiple times
         weatherContainer.textContent = "";
         if (checkValid(userInput)) getWeather(userInput);
+    }
+})
+
+// const slides = document.getElementById('slide');
+// rightArrow.addEventListener('click', progressSlides)
+
+document.addEventListener('click', event => {
+    let target = event.target;
+    console.log(target.id);
+    if (target.id === 'right-arrow') {
+        progressSlides(true);
+    } else if (target.id === 'left-arrow') {
+        progressSlides();
     }
 })
